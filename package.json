@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
-    "inquirer": "^6.0.0"
+    "glob": "^7.1.2",
+    "inquirer": "^6.0.0",
+    "inquirer-autocomplete-prompt": "^0.12.2",
+    "node-forge": "^0.7.5"
   }
 }
