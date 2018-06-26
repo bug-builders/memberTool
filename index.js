@@ -8,8 +8,8 @@ const glob = require('glob')
 
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
-// const bugBuilders = 'https://main.bug.builders';
-const bugBuilders = 'http://127.0.0.1:3000';
+const bugBuilders = 'https://main.bug.builders';
+// const bugBuilders = 'http://127.0.0.1:3000';
 
 if(typeof(process.env.BUGBUILDERS_USERNAME) === 'undefined' || typeof(process.env.BUGBUILDERS_PASSWORD) === 'undefined'){
   console.log('Please specify BUGBUILDERS_USERNAME and BUGBUILDERS_PASSWORD env');
