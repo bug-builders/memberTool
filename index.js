@@ -6,11 +6,6 @@ const inquirer = require('inquirer');
 const axios = require('axios');
 const glob = require('glob');
 
-inquirer.registerPrompt(
-  'autocomplete',
-  require('inquirer-autocomplete-prompt'),
-);
-
 const bugBuilders = 'https://main.bug.builders';
 // const bugBuilders = 'http://127.0.0.1:3000';
 
