@@ -196,7 +196,7 @@ async function createDevis() {
   }
 }
 
-async function signFile() {
+async function signFile(filename) {
   const certs = fs
     .readdirSync(`${process.env['HOME']}/.ssh/`)
     .filter(f => f.includes('.pub'))
@@ -220,16 +220,6 @@ async function signFile() {
   const privateKey = forge.pki.privateKeyFromPem(pkey);
   // const privateKey = forge.pki.decryptRsaPrivateKey(pem, 'password');
 
-  const files = fs.readdirSync(__dirname).filter(f => !f.includes('.sig'));
-
-  const { filename } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'filename',
-      message: 'Which file ?',
-      choices: files,
-    },
-  ]);
   const sigFilename = `${filename}.sig`;
   let sigFile;
   try {
@@ -282,14 +272,19 @@ const choiceList = {
   'Use customer subscription': useSubscription,
   'Create customer': createCustomer,
   'Create devis': createDevis,
-  'Sign file': signFile,
 };
 
-inquirer
-  .prompt({
-    type: 'list',
-    name: 'action',
-    message: 'What do you want to do ?',
-    choices: Object.keys(choiceList),
-  })
-  .then(({ action }) => choiceList[action]());
+if(process.argv[2] === 'sign'){
+  signFile(process.argv[3]);
+} else {
+  inquirer
+    .prompt({
+      type: 'list',
+      name: 'action',
+      message: 'What do you want to do ?',
+      choices: Object.keys(choiceList),
+    })
+    .then(({ action }) => choiceList[action]());
+
+}
+
