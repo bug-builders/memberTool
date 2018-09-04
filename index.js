@@ -9,16 +9,6 @@ const glob = require('glob');
 const bugBuilders = 'https://main.bug.builders';
 // const bugBuilders = 'http://127.0.0.1:3000';
 
-if (
-  typeof process.env.BUGBUILDERS_USERNAME === 'undefined' ||
-  typeof process.env.BUGBUILDERS_PASSWORD === 'undefined'
-) {
-  console.log(
-    'Please specify BUGBUILDERS_USERNAME and BUGBUILDERS_PASSWORD env',
-  );
-  process.exit();
-}
-
 function asciiToHexString(str) {
   return str
     .split('')
@@ -272,6 +262,15 @@ const choiceList = {
 if(process.argv[2] === 'sign'){
   signFile(process.argv[3]);
 } else {
+  if (
+    typeof process.env.BUGBUILDERS_USERNAME === 'undefined' ||
+    typeof process.env.BUGBUILDERS_PASSWORD === 'undefined'
+  ) {
+    console.log(
+      'Please specify BUGBUILDERS_USERNAME and BUGBUILDERS_PASSWORD env',
+    );
+    process.exit();
+  }
   inquirer
     .prompt({
       type: 'list',
