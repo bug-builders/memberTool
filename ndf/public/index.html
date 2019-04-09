@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/bootstrap-4.3.1-dist/css/bootstrap.min.css">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row" id="list">
+      </div>
+      <div class="row">
+        <div class="col-sm-5">
+          <embed id="embed" src="" type="application/pdf" width="100%" height="800px" />
+        </div>
+        <div class="col-sm-4">
+          <textarea id="totext" readonly style="height:100%; width:100%"></textarea>
+        </div>
+        <div class="col-sm-3 form-group">
+          <input type="hidden" class="form-control" placeholder="invoiceFilename" id="invoiceFilename">
+          <input type="text" class="form-control" placeholder="Title" id="title">
+          <input type="text" class="form-control" placeholder="Description" id="description">
+          <input type="text" class="form-control" placeholder="Amount total" id="amount_total">
+          <input type="text" class="form-control" placeholder="Amount TVA" id="amount_taxes">
+          <input type="text" class="form-control" placeholder="Date" id="date">
+          <input type="text" class="form-control" placeholder="Invoice Id" id="invoice_id">
+          <input type="text" class="form-control" placeholder="Issuer" id="issuer">
+          <button type="button" class="btn btn-success" id="saveJson">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
+    <script src="/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+    <script src="/script.js"></script>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">Choose target field</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input type="text" class="form-control" id="selectedText">
+            <div class="form-group">
+              <label for="exampleFormControlSelect1">Target field</label>
+              <select class="form-control" id="exampleFormControlSelect1">
+                <option value="">-- Select --</option>
+                <option value="amount_total">Amount total</option>
+                <option value="amount_taxes">Amount taxes</option>
+                <option value="date">Date</option>
+                <option value="invoice_id">Invoice ID</option>
+                <option value="issuer">Issuer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="exampleFormControlInput1">Result</label>
+              <p id="exampleFormControlInput1"></p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

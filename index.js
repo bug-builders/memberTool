@@ -4,10 +4,17 @@ const forge = require('node-forge');
 const fs = require('fs');
 const inquirer = require('inquirer');
 const axios = require('axios');
+const path = require('path');
 const glob = require('glob');
+const ndf = require('./ndf');
 
 const bugBuilders = 'https://main.bug.builders';
 // const bugBuilders = 'http://127.0.0.1:3000';
+
+const monthNames = ["january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december"
+];
+
 
 function asciiToHexString(str) {
   return str
@@ -181,7 +188,25 @@ async function createDevis() {
   }
 }
 
-async function signFile(filename) {
+async function whoAreYou() {
+  const res = await axios.get(
+    `https://api.github.com/orgs/bug-builders/members`,
+  );
+  const members = res.data.map(member => ({
+    value: member.login,
+    name: member.login,
+  }));
+
+  const { who } = await inquirer.prompt({
+    type: 'list',
+    name: 'who',
+    message: 'Who are you ?',
+    choices: members,
+  });
+  return who;
+}
+
+async function signFile(filenames, whoKnows) {
   const certs = fs
     .readdirSync(`${process.env['HOME']}/.ssh/`)
     .filter(f => f.includes('.pub'))
@@ -204,52 +229,46 @@ async function signFile(filename) {
   const pkey = fs.readFileSync(pkeyFile, 'utf8');
   const privateKey = forge.pki.privateKeyFromPem(pkey);
   // const privateKey = forge.pki.decryptRsaPrivateKey(pem, 'password');
-
-  const sigFilename = `${filename}.sig`;
-  let sigFile;
-  try {
-    sigFile = JSON.parse(fs.readFileSync(sigFilename, 'utf8'));
-  } catch (err) {
-    sigFile = {};
+  let who;
+  if(typeof(whoKnows) === 'undefined'){
+    who = await whoAreYou();
+  } else {
+    who = whoKnows;
   }
 
-  const res = await axios.get(
-    `https://api.github.com/orgs/bug-builders/members`,
-  );
-  const members = res.data.map(member => ({
-    value: member.login,
-    name: member.login,
-  }));
-
-  const { who } = await inquirer.prompt({
-    type: 'list',
-    name: 'who',
-    message: 'Who are you ?',
-    choices: members,
-  });
-
-  if (typeof sigFile[who] !== 'undefined') {
-    console.log(`${who} already signed this file.`);
-    const { ok } = await inquirer.prompt({
-      type: 'list',
-      name: 'ok',
-      message: `Do you want to replace it ?`,
-      choices: ['Yes', 'No'],
-    });
-    if (ok === 'No') {
-      process.exit();
+  for(let i = 0; i < filenames.length; i += 1) {
+    const filename = filenames[i];
+    const sigFilename = `${filename}.sig`;
+    let sigFile;
+    try {
+      sigFile = JSON.parse(fs.readFileSync(sigFilename, 'utf8'));
+    } catch (err) {
+      sigFile = {};
     }
+
+    if (typeof sigFile[who] !== 'undefined') {
+      console.log(`${who} already signed this file.`);
+      const { ok } = await inquirer.prompt({
+        type: 'list',
+        name: 'ok',
+        message: `Do you want to replace it ?`,
+        choices: ['Yes', 'No'],
+      });
+      if (ok === 'No') {
+        process.exit();
+      }
+    }
+
+    const sha = cp
+      .execFileSync('git', ['hash-object', filename])
+      .toString()
+      .trim();
+    const signature = sign(sha, privateKey);
+    sigFile[who] = signature;
+
+    fs.writeFileSync(sigFilename, JSON.stringify(sigFile));
+    console.log(`${sigFilename} updated`);
   }
-
-  const sha = cp
-    .execFileSync('git', ['hash-object', filename])
-    .toString()
-    .trim();
-  const signature = sign(sha, privateKey);
-  sigFile[who] = signature;
-
-  fs.writeFileSync(sigFilename, JSON.stringify(sigFile));
-  console.log(`${sigFilename} updated`);
 }
 
 const choiceList = {
@@ -259,8 +278,63 @@ const choiceList = {
   'Create devis': createDevis,
 };
 
-if(process.argv[2] === 'sign'){
-  signFile(process.argv[3]);
+if(process.argv[2] === 'sign') {
+  signFile([process.argv[3]]);
+} else if(process.argv[2] === 'ndf') {
+  if(process.argv[3] === 'process') {
+    whoAreYou().then(who => {
+      const now = new Date();
+      glob(`/tmp/ndf/*.json`, {}, async (er, files) => {
+        const signatures = [];
+        files.forEach(file => {
+          const accountable = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const justificatifPath = `/justificatifs/${who}/${now.getFullYear()}/${monthNames[now.getMonth()]}`;
+          cp.spawnSync('mkdir', ['-p', `${process.argv[4]}${justificatifPath}`]);
+          fs.copyFileSync(file.replace('.json', ''), `${process.argv[4]}${justificatifPath}/${accountable.title}.pdf`);
+          const sha = cp
+            .execFileSync('git', ['hash-object', `${process.argv[4]}${justificatifPath}/${accountable.title}.pdf`])
+            .toString()
+            .trim();
+          signatures.push({
+            description: accountable.description,
+            price: accountable.amount_total,
+            tva: accountable.amount_taxes,
+            justificatif: `${justificatifPath}/${accountable.title}.pdf`,
+            sha,
+            date: accountable.date,
+            invoiceId: accountable.invoice_id,
+            issuer: accountable.issuer,
+          })
+        })
+        const signaturePath = `${process.argv[4]}/Note_de_frais/${now.getFullYear()}_${monthNames[now.getMonth()]}_${who}.json`;
+        let infos;
+        try {
+          const oldSig = JSON.parse(fs.readFileSync(signaturePath, 'utf8'));
+          infos = oldSig.infos;
+          console.log(infos);
+        } catch (e) {
+          const response = await inquirer.prompt({
+            type: 'input',
+            name: 'infos',
+            message: "What's your ndf description ?",
+          });
+          infos = response.infos;
+        }
+
+
+
+        fs.writeFileSync(signaturePath, JSON.stringify({
+          claimant: who,
+          infos,
+          claims: signatures.sort((a,b) => new Date(a.date).getTime() < new Date(b.date).getTime() ? -1 : 1)
+        }, '', 2))
+        signFile([signaturePath], who);
+      })
+    })
+  } else {
+    ndf.start(process.argv[3]);
+  }
+
 } else {
   if (
     typeof process.env.BUGBUILDERS_USERNAME === 'undefined' ||
