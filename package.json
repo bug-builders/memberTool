@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/storage": "^2.4.2",
-    "@google-cloud/vision": "^0.25.0",
+    "@google-cloud/storage": "^3.0.0",
+    "@google-cloud/vision": "^2.0.0",
     "axios": "^0.18.0",
     "express": "^4.16.4",
     "glob": "^7.1.3",
